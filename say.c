@@ -55,6 +55,40 @@ PHP_FUNCTION(say)
 	RETURN_STR(str);
 }
 
+PHP_FUNCTION(default_value)
+{
+	zend_string *type;
+	zval *value = NULL;
+	#ifndef FAST_ZPP
+	if(zend_parse_parameters(ZEND_NUM_ARGS(), "S|z", &type, &value) == FAILURE) {
+		return ;
+	}
+	#else
+	ZEND_PARSE_PARAMETERS_START(1, 2)
+		Z_PARAM_STR(type)
+		Z_PARAM_OPTIONAL
+	  Z_PARAM_ZVAL_EX(value, 0, 1)
+	 ZEND_PARSE_PARAMETERS_END();
+	#endif
+
+	if (ZSTR_LEN(type) == 3 && strncmp(ZSTR_VAL(type), "int", 3) == 0 && value == NULL) {
+         RETURN_LONG(0);
+     } else if (ZSTR_LEN(type) == 3 && strncmp(ZSTR_VAL(type), "int", 3) == 0 && value != NULL) {
+         RETURN_ZVAL(value, 0, 1);
+     } else if (ZSTR_LEN(type) == 4 && strncmp(ZSTR_VAL(type), "bool", 4) == 0 && value == NULL) {
+         RETURN_FALSE;
+     } else if (ZSTR_LEN(type) == 4 && strncmp(ZSTR_VAL(type), "bool", 4) == 0 && value != NULL) {
+         RETURN_ZVAL(value, 0, 1);
+     } else if (ZSTR_LEN(type) == 3 && strncmp(ZSTR_VAL(type), "str", 3) == 0 && value == NULL) {
+         RETURN_EMPTY_STRING();
+     } else if (ZSTR_LEN(type) == 3 && strncmp(ZSTR_VAL(type), "str", 3) == 0 && value != NULL) {
+         RETURN_ZVAL(value, 0, 1);
+     }
+
+     RETURN_NULL();
+
+}
+
 /* Every user-visible function in PHP should document itself in the source */
 /* {{{ proto string confirm_say_compiled(string arg)
    Return a string to confirm that the module is compiled in */
@@ -154,6 +188,7 @@ PHP_MINFO_FUNCTION(say)
  */
 const zend_function_entry say_functions[] = {
 	PHP_FE(say, NULL)
+	PHP_FE(default_value, NULL)
 	PHP_FE(confirm_say_compiled,	NULL)		/* For testing, remove later. */
 	PHP_FE_END	/* Must be the last line in say_functions[] */
 };
